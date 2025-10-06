@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Move On Dulu 😌</title>
+  <style>
+    :root{ --bg1:#f6d365; --bg2:#fda085; --ink:#1d1d1f; --card:#ffffffcc; --pink:#ff3b7a; }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; color:var(--ink);
+      background:linear-gradient(135deg,var(--bg1),var(--bg2)) fixed; overflow:hidden;
+    }
+    .wrap{height:100%; display:grid; place-items:center; padding:18px; position:relative}
+    .card{
+      width:min(540px,92vw); background:var(--card); border-radius:18px; padding:22px 20px;
+      backdrop-filter:saturate(140%) blur(6px); box-shadow:0 14px 30px rgba(0,0,0,.15);
+      animation:pop .5s ease both;
+    }
+    @keyframes pop{from{opacity:0; transform:scale(.9)} to{opacity:1; transform:scale(1)}}
+    h1{margin:8px 0 6px}
+    p{margin:0 0 10px}
+    .cta{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+    .btn{
+      appearance:none; border:0; border-radius:999px; padding:12px 16px; cursor:pointer;
+      background:var(--pink); color:#fff; font-weight:700; box-shadow:0 10px 20px rgba(255,59,122,.35);
+      transition:transform .15s ease, filter .2s ease;
+    }
+    .btn:active{transform:scale(.97)}
+    .ghost{background:#fff; color:var(--ink); box-shadow:0 10px 18px rgba(0,0,0,.06)}
+    .bad{filter:grayscale(.9) brightness(.92); cursor:not-allowed}
+    .marquee{height:26px; overflow:hidden; position:relative; margin-top:8px; color:#333}
+    .marquee span{position:absolute; width:100%; animation:up 6s linear infinite}
+    @keyframes up{0%{top:0}20%{top:0}25%{top:-26px}45%{top:-26px}50%{top:-52px}70%{top:-52px}75%{top:-78px}95%{top:-78px}100%{top:0}}
+    .hearts{position:absolute; inset:0; pointer-events:none}
+    .heart{
+      position:absolute; width:16px; height:16px; background:#ff3b7a; transform:rotate(45deg);
+      animation:float var(--dur) linear infinite; opacity:.85;
+    }
+    .heart::before,.heart::after{content:""; position:absolute; width:16px; height:16px; background:#ff3b7a; border-radius:50%}
+    .heart::before{top:-8px; left:0} .heart::after{left:-8px; top:0}
+    @keyframes float{from{transform:translateY(110vh) rotate(45deg)} to{transform:translateY(-15vh) rotate(45deg)}}
+    .gate{position:fixed; inset:0; display:grid; place-items:center; background:rgba(0,0,0,.5); z-index:50}
+    .inner{background:#fff; padding:20px; border-radius:14px; width:min(440px,92vw); text-align:center}
+    .toast{margin-top:10px; font-size:14px; color:#555; min-height:20px}
+  </style>
+</head>
+<body>
+  <div class="hearts" id="hearts"></div>
+
+  <div class="wrap">
+    <div class="card">
+      <h1>Hallo mantan 😇</h1>
+      <p>Kabar baik: hati sudah ikhlas, kabar kurang baik: jalur balikan ditutup sementara.</p>
+      <div class="marquee">
+        <span id="quote">
+          Kita alumni, bukan daftar tunggu ✔️ •
+          Baper itu hakmu, move on itu tanggung jawabmu •
+          Chat lama dibaca sejarah, bukan dibalas lagi
+        </span>
+      </div>
+
+      <div class="cta" style="margin-top:12px">
+        <button class="btn bad" id="yesBtn" disabled>Balikan Yuk?</button>
+        <button class="btn ghost" id="roastBtn">Roast 😈</button>
+        <button class="btn" id="waBtn">WhatsApp</button>
+        <button class="btn ghost" id="musicBtn">Mulai Musik ▶️</button>
+      </div>
+
+      <div class="toast" id="toast">Klik “Roast” kalau mau denger kejujuran versi stand‑up comedy.</div>
+
+      <!-- Audio CC0/Public Domain -->
+      <audio id="bgm"
+        src="https://freemusicarchive.org/track/happy-clappy/download"
+        crossorigin="anonymous"
+        loop></audio>
+    </div>
+  </div>
+
+  <!-- Overlay Play (patuh autoplay) -->
+  <div class="gate" id="gate" hidden>
+    <div class="inner">
+      <h3>Aktifkan musik?</h3>
+      <p>Ketuk “Play” untuk memutar musik latar.</p>
+      <button class="btn" id="playBtn">Play</button>
+    </div>
+  </div>
+
+  <script>
+    // ====== WhatsApp (Click-to-Chat) ======
+    const WA_NUMBER = '6281213232691';
+    const waMessage = 'Maaf ho, kita cukup saling mendoakan dari jauh saja 😊 Jalur balikan resmi ditutup sampai waktu yg tdk ditentukan.';
+    function openWA(){
+      const url = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(waMessage);
+      window.open(url, '_blank');
+    }
+
+    // ====== Audio dengan handler promise ======
+    const gate = document.getElementById('gate');
+    const musicBtn = document.getElementById('musicBtn');
+    const playBtn = document.getElementById('playBtn');
+    const bgm = document.getElementById('bgm');
+
+    musicBtn.addEventListener('click', () => { gate.hidden = false; });
+    playBtn.addEventListener('click', async () => {
+      try {
+        await bgm.play();           // comply autoplay via user gesture
+        gate.hidden = true;
+        musicBtn.disabled = true;
+        musicBtn.textContent = 'Musik aktif 🎵';
+      } catch (err) {
+        console.warn('Audio blocked:', err);
+        gate.hidden = true;         // close overlay so controls are visible
+        bgm.setAttribute('controls','');
+      }
+    });
+
+    // ====== Hearts background ======
+    (function spawnHearts(){
+      const wrap = document.getElementById('hearts');
+      for(let i=0;i<24;i++){
+        const h = document.createElement('div');
+        h.className = 'heart';
+        h.style.left = Math.random()*100 + 'vw';
+        h.style.setProperty('--dur', (8+Math.random()*8)+'s');
+        wrap.appendChild(h);
+      }
+    })();
+
+    // ====== Roast ringan ======
+    const roastLines = [
+      'WiFi hati sudah ganti password, jang minta KODE lagi ya 🙃',
+      'Kita kek notifikasi promo: dulu rame, sekarang di‑mute 😅',
+      'Balikan itu pakai garansi? Sayang, struknya sudah hilang 🤭',
+      'Kenangan disimpan di cloud, bukan di chat tengah malam ✋',
+      'Maaf, tiket balikan sold out seumur hidup 🎟️'
+    ];
+    const toast = document.getElementById('toast');
+    document.getElementById('roastBtn').addEventListener('click', ()=>{
+      toast.textContent = roastLines[Math.floor(Math.random()*roastLines.length)];
+    });
+
+    document.getElementById('waBtn').addEventListener('click', openWA);
+  </script>
+</body>
+</html>
